@@ -55,21 +55,14 @@ script:
       USE_SQLITE="yes";
       USE_POSTGRESQL="yes";
     fi
-  # defaulting unset uses to "no"
-  - USE_V4L2=$( [ -z "$USE_V4L2" ] && echo "$USE_V4L2" || echo "no" )
-  - USE_FFMPEG=$( [ -z "$USE_FFMPEG" ] && echo "$USE_FFMPEG" || echo "no" )
-  - USE_WEBP=$( [ -z "$USE_WEBP" ] && echo "$USE_WEBP" || echo "no" )
-  - USE_MARIADB=$( [ -z "$USE_MARIADB" ] && echo "$USE_MARIADB" || echo "no" )
-  - USE_SQLITE=$( [ -z "$USE_SQLITE" ] && echo "$USE_SQLITE" || echo "no" )
-  - USE_POSTGRESQL=$( [ -z "$USE_POSTGRESQL" ] && echo "$USE_POSTGRESQL" || echo "no" )
   # actual build
   - docker build
-    --build-arg USE_V4L2=$USE_V4L2
-    --build-arg USE_FFMPEG=$USE_FFMPEG
-    --build-arg USE_WEBP=$USE_WEBP
-    --build-arg USE_MARIADB=$USE_MARIADB
-    --build-arg USE_SQLITE=$USE_SQLITE
-    --build-arg USE_POSTGRESQL=$USE_POSTGRESQL
+    --build-arg USE_V4L2="$USE_V4L2"
+    --build-arg USE_FFMPEG="$USE_FFMPEG"
+    --build-arg USE_WEBP="$USE_WEBP"
+    --build-arg USE_MARIADB="$USE_MARIADB"
+    --build-arg USE_SQLITE="$USE_SQLITE"
+    --build-arg USE_POSTGRESQL="$USE_POSTGRESQL"
     -t "$DOCKER_HUB_PROJECT:$IMAGE_TAG"
     .
   # docker hub stage

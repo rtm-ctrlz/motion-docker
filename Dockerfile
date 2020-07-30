@@ -2,7 +2,7 @@
 FROM alpine:3.12 as src
 ARG SRC_MOTION_SOURCE="git"
 ARG SRC_MOTION_VERSION="master"
-ARG SRC_MOTION_CHECKSUM=""
+ARG SRC_MOTION_CHECKSUM
 WORKDIR /build
 RUN set -ex ;\
 	case "$SRC_MOTION_SOURCE" in \
@@ -32,12 +32,12 @@ RUN set -ex ;\
 
 # toolchain
 FROM alpine:3.12 as builder
-ARG USE_V4L2="no"
-ARG USE_FFMPEG="no"
-ARG USE_WEBP="no"
-ARG USE_MARIADB="no"
-ARG USE_SQLITE="no"
-ARG USE_POSTGRESQL="no"
+ARG USE_V4L2
+ARG USE_FFMPEG
+ARG USE_WEBP
+ARG USE_MARIADB
+ARG USE_SQLITE
+ARG USE_POSTGRESQL
 WORKDIR /build
 RUN apk add --virtual .deps-motion-config \
 		# configure and build tools
@@ -57,12 +57,12 @@ RUN apk add --virtual .deps-motion-config \
 
 # actual build
 FROM builder as build
-ARG USE_V4L2="no"
-ARG USE_FFMPEG="no"
-ARG USE_WEBP="no"
-ARG USE_MARIADB="no"
-ARG USE_SQLITE="no"
-ARG USE_POSTGRESQL="no"
+ARG USE_V4L2
+ARG USE_FFMPEG
+ARG USE_WEBP
+ARG USE_MARIADB
+ARG USE_SQLITE
+ARG USE_POSTGRESQL
 WORKDIR /build
 COPY --from=src /src /build
 RUN set -ex ;\
@@ -83,12 +83,12 @@ RUN set -ex ;\
 
 # runtime base
 FROM alpine:3.12 as target_deps
-ARG USE_V4L2="no"
-ARG USE_FFMPEG="no"
-ARG USE_WEBP="no"
-ARG USE_MARIADB="no"
-ARG USE_SQLITE="no"
-ARG USE_POSTGRESQL="no"
+ARG USE_V4L2
+ARG USE_FFMPEG
+ARG USE_WEBP
+ARG USE_MARIADB
+ARG USE_SQLITE
+ARG USE_POSTGRESQL
 RUN set -ex ;\
     apk add tzdata ;\
 	apk add --no-cache \
