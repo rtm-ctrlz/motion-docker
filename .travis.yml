@@ -1,0 +1,77 @@
+language: c
+os:
+  - linux
+dist: xenial
+
+services:
+  - docker
+
+env:
+  # full master builds
+  - SRC_MOTION_SOURCE=git SRC_MOTION_VERSION=master
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c IS_LATEST=yes
+  # minimal builds
+  - SRC_MOTION_SOURCE=git SRC_MOTION_VERSION=master IS_MINIMAL=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c IS_MINIMAL=yes
+  # specific builds
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_MARIADB=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_SQLITE=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_POSTGRESQL=yes
+  
+script:
+  - set -e
+  - if [ -z "$IMAGE_TAG" ]; then
+      IMAGE_TAG="$SRC_MOTION_VERSION";
+      if [ ! "$SRC_MOTION_SOURCE" == "tar" ]; then
+        IMAGE_TAG="$SRC_MOTION_SOURCE-$IMAGE_TAG";
+      fi;
+    fi
+  - if [ "$IS_MINIMAL" == "yes" ]; then
+      IMAGE_TAG="$IMAGE_TAG-minimal";
+      USE_V4L2=no;
+      USE_FFMPEG=no;
+      USE_WEBP=no;
+      USE_MARIADB=no;
+      USE_SQLITE=no;
+      USE_POSTGRESQL=no;
+    else
+      IS_MINIMAL="no"
+      IMAGE_TAG=$( [ "$USE_V4L2" == "yes" ] && echo "$IMAGE_TAG-v4l2" || echo "$IMAGE_TAG" );
+      IMAGE_TAG=$( [ "$USE_FFMPEG" == "yes" ] && echo "$IMAGE_TAG-ffmpeg" || echo "$IMAGE_TAG" );
+      IMAGE_TAG=$( [ "$USE_WEBP" == "yes" ] && echo "$IMAGE_TAG-webp" || echo "$IMAGE_TAG" );
+      IMAGE_TAG=$( [ "$USE_MARIADB" == "yes" ] && echo "$IMAGE_TAG-mariadb" || echo "$IMAGE_TAG" );
+      IMAGE_TAG=$( [ "$USE_SQLITE" == "yes" ] && echo "$IMAGE_TAG-sqlite" || echo "$IMAGE_TAG" );
+      IMAGE_TAG=$( [ "$USE_POSTGRESQL" == "yes" ] && echo "$IMAGE_TAG-pgsql" || echo "$IMAGE_TAG" );
+    fi
+  # inverting "all unset uses to all set uses"
+  - if [ -z "$USE_V4L2" -a -z "$USE_FFMPEG" -a -z "$USE_WEBP" -a -z "$USE_MARIADB" -a -z "$USE_SQLITE" -a -z "$USE_POSTGRESQL" ]; then
+      USE_V4L2="yes";
+      USE_FFMPEG="yes";
+      USE_WEBP="yes";
+      USE_MARIADB="yes";
+      USE_SQLITE="yes";
+      USE_POSTGRESQL="yes";
+    fi
+
+  - docker build
+    --build-arg USE_V4L2=$( [ "$USE_V4L2" == "yes" ] && echo "yes" || echo "no" )
+    --build-arg USE_FFMPEG=$( [ "$USE_FFMPEG" == "yes" ] && echo "yes" || echo "no" )
+    --build-arg USE_WEBP=$( [ [ "$USE_WEBP" == "yes" ] && echo "yes" || echo "no" )
+    --build-arg USE_MARIADB=$( [ "$USE_MARIADB" == "yes" ] && echo "yes" || echo "no" )
+    --build-arg USE_SQLITE=$( [ "$USE_SQLITE" == "yes" ] && echo "yes" || echo "no" )
+    --build-arg USE_POSTGRESQL=$( [ "$USE_POSTGRESQL" == "yes" ] && echo "yes" || echo "no" )
+    -t "$DOCKER_HUB_PROJECT:$IMAGE_TAG"
+    .
+
+  - if [ ! "$TRAVIS_BRANCH" == "master" ]; then exit 0; fi
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push "$DOCKER_HUB_PROJECT:$IMAGE_TAG"
+  - echo "Pushed tag - ${DOCKER_HUB_PROJECT}:$IMAGE_TAG"
+
+  - if [ ! "$IS_LATEST" == "yes" ]; then exit 0; fi
+  - docker tag "$DOCKER_HUB_PROJECT:$IMAGE_TAG" "$DOCKER_HUB_PROJECT:latest"
+  - docker push "$DOCKER_HUB_PROJECT:latest"
+  - echo "Pushed tag - ${DOCKER_HUB_PROJECT}:latest"
