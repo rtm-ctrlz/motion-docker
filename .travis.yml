@@ -9,18 +9,27 @@ services:
 env:
   # full master builds
   - SRC_MOTION_SOURCE=git SRC_MOTION_VERSION=master
-  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c IS_LATEST=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 IS_LATEST=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c
   # minimal builds
   - SRC_MOTION_SOURCE=git SRC_MOTION_VERSION=master IS_MINIMAL=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 IS_MINIMAL=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c IS_MINIMAL=yes
-  # specific builds
+  # specific builds 4.3.2
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes USE_FFMPEG=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_MARIADB=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_SQLITE=yes
+  - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.2 SRC_MOTION_CHECKSUM=d3b44364d610daaacccad1d416caa3b7 USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_POSTGRESQL=yes
+  # specific builds 4.3.1
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_MARIADB=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_SQLITE=yes
   - SRC_MOTION_SOURCE=tar SRC_MOTION_VERSION=4.3.1 SRC_MOTION_CHECKSUM=2d49f8af48f9deff4ea9204b05cc327c USE_V4L2=yes USE_FFMPEG=yes USE_WEBP=yes USE_POSTGRESQL=yes
-  
+
 script:
   - set -e
   - if [ -z "$IMAGE_TAG" ]; then
@@ -39,12 +48,12 @@ script:
       USE_POSTGRESQL=no;
     else
       IS_MINIMAL="no"
-      IMAGE_TAG=$( [ "$USE_V4L2" == "yes" ] && echo "$IMAGE_TAG-v4l2" || echo "$IMAGE_TAG" );
-      IMAGE_TAG=$( [ "$USE_FFMPEG" == "yes" ] && echo "$IMAGE_TAG-ffmpeg" || echo "$IMAGE_TAG" );
-      IMAGE_TAG=$( [ "$USE_WEBP" == "yes" ] && echo "$IMAGE_TAG-webp" || echo "$IMAGE_TAG" );
-      IMAGE_TAG=$( [ "$USE_MARIADB" == "yes" ] && echo "$IMAGE_TAG-mariadb" || echo "$IMAGE_TAG" );
-      IMAGE_TAG=$( [ "$USE_SQLITE" == "yes" ] && echo "$IMAGE_TAG-sqlite" || echo "$IMAGE_TAG" );
-      IMAGE_TAG=$( [ "$USE_POSTGRESQL" == "yes" ] && echo "$IMAGE_TAG-pgsql" || echo "$IMAGE_TAG" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_V4L2" == "yes" ] && echo "-v4l2" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_FFMPEG" == "yes" ] && echo "-ffmpeg" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_WEBP" == "yes" ] && echo "-webp" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_MARIADB" == "yes" ] && echo "-mariadb" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_SQLITE" == "yes" ] && echo "-sqlite" );
+      IMAGE_TAG="$IMAGE_TAG"$( [ "$USE_POSTGRESQL" == "yes" ] && echo "-pgsql" );
     fi
   # inverting "all unset uses to all set uses"
   - if [ -z "$USE_V4L2" -a -z "$USE_FFMPEG" -a -z "$USE_WEBP" -a -z "$USE_MARIADB" -a -z "$USE_SQLITE" -a -z "$USE_POSTGRESQL" ]; then
